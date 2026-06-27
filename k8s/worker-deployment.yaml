@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: enquete
+spec:
+  replicas: 2  # múltiplos workers — cada um pega um voto diferente da fila
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+      - name: worker
+        image: enquete-worker:v1
+        imagePullPolicy: Never
+        envFrom:
+        - secretRef:
+            name: db-secret
+        env:
+        - name: REDIS_HOST
+          value: redis
+        - name: DB_HOST      # ← faltando
+          value: db

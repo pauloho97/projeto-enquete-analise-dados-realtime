@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enquete-config
+  namespace: enquete
+data:
+  # Altere as perguntas aqui sem precisar rebuildar a imagem
+  QUESTIONS: '[{"id":1,"text":"Linguagem preferida? teste de mudança sem rebuild","options":["Python","JavaScript","Java","Go"]},{"id":2,"text":"BD preferido?","options":["Postgres","MySQL","MongoDB","Redis"]},{"id":3,"text":"Orquestrador preferido?","options":["Kubernetes","Docker Swarm","Nomad","Nenhum"]}]'

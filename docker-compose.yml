@@ -1,0 +1,65 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: enquetedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+
+  api:
+    build: ./api
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: db
+      POSTGRES_DB: enquetedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      QUESTIONS: '[{"id":1,"text":"Linguagem preferida?","options":["Python","JS","Java","Go"]},{"id":2,"text":"BD preferido?","options":["Postgres","MySQL","MongoDB","Redis"]}]'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build: ./worker
+    environment:
+      REDIS_HOST: redis
+      DB_HOST: db
+      POSTGRES_DB: enquetedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      api:
+        condition: service_started
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      API_URL: http://frontend:5000
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  db_data:

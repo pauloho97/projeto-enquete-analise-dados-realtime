@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: enquete
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: pauloho97/enquete-api:latest
+        imagePullPolicy: Always
+        envFrom:
+        - secretRef:
+            name: db-secret
+        - configMapRef:
+            name: enquete-config  # injeta QUESTIONS como env var
+        env:
+        - name: REDIS_HOST
+          value: redis
+        - name: DB_HOST      # ← faltando 
+          value: db
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: enquete
+spec:
+  type: NodePort
+  selector:
+    app: api
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30002
