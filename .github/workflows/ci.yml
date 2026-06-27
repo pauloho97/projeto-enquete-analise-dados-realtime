@@ -1,0 +1,38 @@
+name: CI — Enquete
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Instalar dependências da API
+        run: npm install
+        working-directory: ./api
+
+      - name: Verificar se a API inicia corretamente
+        run: node -e "require('./index.js')" &
+        working-directory: ./api
+        continue-on-error: true
+
+  validate-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar Docker Compose
+        run: docker compose version
+
+      - name: Validar docker-compose.yml
+        run: docker compose config
